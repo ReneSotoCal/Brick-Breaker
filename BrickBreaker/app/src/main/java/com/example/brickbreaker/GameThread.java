@@ -11,7 +11,7 @@ public class GameThread extends Thread{
 
     ArrayList<ArrayList<Brick>> bricks;
     boolean running = true;
-    SurfaceHolder holder;
+    final SurfaceHolder holder;
     int width, height, radius;
     int x;
     int y;
