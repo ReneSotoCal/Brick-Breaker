@@ -37,7 +37,7 @@ public class GameThread extends Thread{
 
 
         white.setColor(Color.WHITE);//Color for the canvas
-        ballColor.setColor(Color.GREEN);//Ball Color
+        ballColor.setColor(Color.RED);//Ball Color
         long previousTime = System.currentTimeMillis();//Setting the time at start as the previous time.
 
         //Initializing the radius and x and y coordinates
@@ -55,6 +55,8 @@ public class GameThread extends Thread{
                     long currentTime = System.currentTimeMillis();//Current time of the balls position
                     canvas.drawRect(0, 0, width, height, white);//Draw the canvas
                     double elapsedTime = currentTime - previousTime;//Time elapsed between previous time and current
+                    Brick slider = new Brick(true, 75, width/5, 50, height - 100);
+                    drawBrick(slider, canvas);
 
                     //Iterate through the bricks
                     for(ArrayList<Brick> row : bricks)
