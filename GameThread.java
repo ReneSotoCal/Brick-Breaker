@@ -111,16 +111,7 @@ public class GameThread extends Thread{
         int testY = game.y;
 
         if(brick.isActive){//If the brick has never been touched
-
-            //Slider collision WIP
-            if(brick.isSlider) {
-                if(game.y + game.radius >= brick.y) {
-                    if(game.x + game.radius >= brick.x && game.x - game.radius <= brick.x + brick.width) {
-                        game.dy = -game.dy;//Reverse the ball's vertical direction
-                        return true;//Collision detected
-                    }
-                }
-            } else {//For regular bricks
+            
                 //Make the testX coordinate the closest brick x coordinate to the ball
                 if(game.x < brick.x)
                     testX = brick.x;
@@ -164,7 +155,7 @@ public class GameThread extends Thread{
                     return true;//There is a collision
                 }
             }
-        }
+
         return false;//There is no collision
     }
 
