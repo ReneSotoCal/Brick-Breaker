@@ -61,14 +61,16 @@ public class GameThread extends Thread{
                     //Draw the slider brick
                     Brick slider = new Brick(true, 75, width / 5, sliderX - width / 10, height - 100, true);
                     drawBrick(slider, canvas);
+                    collides(slider, this);
+
 
                     //Iterate through the bricks
                     for(ArrayList<Brick> row : bricks)
                         for(Brick brick : row){
                             if(brick.isActive)
-                                drawBrick(brick, canvas); // Draw the bricks
-                            if(collides(brick, this)) // Calls collision method for bricks
-                                brick.isActive = false; // Delete the brick if a collision occurs
+                                drawBrick(brick, canvas);//Draw the bricks
+                            if(collides(brick, this))//Calls collision method for bricks
+                                brick.isActive = false;//Delete the brick if a collision occurs
                         }
 
                     //Collisions for the borders of the screen
