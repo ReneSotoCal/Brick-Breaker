@@ -1,9 +1,11 @@
+
 package com.example.brickbreaker;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.SurfaceHolder;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -15,19 +17,29 @@ public class GameThread extends Thread{
     int width, height, radius;
     int x;
     int y;
-    int dx = 12;
-    int dy = 12;
+    int dx = 4;
+    int dy = 4;
     int sliderX;
 
-    public GameThread(SurfaceHolder holder, int width, int height){
+    int sliderPos;
+
+    GameView gameView;
+
+
+    public GameThread(SurfaceHolder holder, int width, int height, GameView gameView){
         this.holder = holder;
         this.height = height;
         this.width = width;
+        this.gameView = gameView;
+        sliderPos = (width / 2) - (width / 10);
     }
 
+
     public void setSliderX(int x) {
-        this.sliderX = x;
+        sliderPos = x;
     }
+
+
 
     @Override
     public void run() {
@@ -46,7 +58,7 @@ public class GameThread extends Thread{
         //Initializing the radius and x and y coordinates
         radius = 35;
         x = (int)(Math.random() * ((width - radius) - radius) + radius);//To be changed to the center of the slider
-        y = (int)(Math.random() * ((height - radius) - radius) + radius);//To be changed to the top of the slider
+        y = (int)(Math.random() * ((height - radius - 110) - radius) + radius + 430);//To be changed to the top of the slider
 
         //Changing directions of the ball when a border is reached
         while(running) {
@@ -58,26 +70,35 @@ public class GameThread extends Thread{
                     canvas.drawRect(0, 0, width, height, white);//Draw the canvas
                     double elapsedTime = currentTime - previousTime;//Time elapsed between previous time and current
 
+
                     //Draw the slider brick
-                    Brick slider = new Brick(true, 75, width / 5, sliderX - width / 10, height - 100, true);
+                    Brick slider = new Brick(true, 75, width / 5, sliderPos, height - 100, true);
                     drawBrick(slider, canvas);
                     collides(slider, this);
 
-
+                    boolean gameWon = true;
                     //Iterate through the bricks
                     for(ArrayList<Brick> row : bricks)
                         for(Brick brick : row){
-                            if(brick.isActive)
+                            if((brick.isActive)) {
                                 drawBrick(brick, canvas);//Draw the bricks
+                                gameWon = false;
+                            }
                             if(collides(brick, this))//Calls collision method for bricks
                                 brick.isActive = false;//Delete the brick if a collision occurs
                         }
+//                    if(gameWon)
+////                        Toast.makeText(gameView.getContext(), "You Win!", Toast.LENGTH_SHORT).show();
 
                     //Collisions for the borders of the screen
                     if (x - radius <= 0 || x + radius >= width)
                         dx = -dx;
-                    if (y - radius <= 0 || y + radius >= height)
+                    if (y - radius <= 0)
                         dy = -dy;
+
+                    //Stops game from running if the ball hits the bottom of the screen
+                    if(y + radius >= height)
+                        running = false;
 
                     //Updating the new x and y locations based on the rate of change and direction
                     x += (int) (elapsedTime * dx * 0.1);
@@ -111,50 +132,50 @@ public class GameThread extends Thread{
         int testY = game.y;
 
         if(brick.isActive){//If the brick has never been touched
-            
-                //Make the testX coordinate the closest brick x coordinate to the ball
-                if(game.x < brick.x)
-                    testX = brick.x;
-                else if(game.x > brick.x + brick.width)
-                    testX = brick.x + brick.width;
 
-                //Make the testY coordinate the closest brick y coordinate to the ball
-                if(game.y < brick.y)
-                    testY = brick.y;
-                else if(game.y > brick.y + brick.height)
-                    testY = brick.y + brick.height;
+            //Make the testX coordinate the closest brick x coordinate to the ball
+            if(game.x < brick.x)
+                testX = brick.x;
+            else if(game.x > brick.x + brick.width)
+                testX = brick.x + brick.width;
 
-                //Calculate the distance of the respective x and y coordinates and the total distance
-                int distanceX = game.x - testX;
-                int distanceY = game.y - testY;
-                int distance = (int) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+            //Make the testY coordinate the closest brick y coordinate to the ball
+            if(game.y < brick.y)
+                testY = brick.y;
+            else if(game.y > brick.y + brick.height)
+                testY = brick.y + brick.height;
 
-                //If the distance is less than the radius of the ball then there is a collision
-                if(distance <= game.radius) {
-                    //Bounding Boxes Based Algorithm
-                    if(game.x < brick.x ){
-                        if(game.y < brick.y)
-                            game.dy = -game.dy;
-                        else if(game.y > brick.y + brick.height)
-                            game.dy = -game.dy;
+            //Calculate the distance of the respective x and y coordinates and the total distance
+            int distanceX = game.x - testX;
+            int distanceY = game.y - testY;
+            int distance = (int) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
-                        game.dx = -game.dx;
-                    } else if(game.x > brick.x + brick.width){
-                        if(game.y < brick.y)
-                            game.dy = -game.dy;
-                        else if(game.y > brick.y + brick.height)
-                            game.dy = -game.dy;
+            //If the distance is less than the radius of the ball then there is a collision
+            if(distance <= game.radius) {
+                //Bounding Boxes Based Algorithm
+                if(game.x < brick.x ){
+                    if(game.y < brick.y)
+                        game.dy = -game.dy;
+                    else if(game.y > brick.y + brick.height)
+                        game.dy = -game.dy;
 
-                        game.dx = -game.dx;
-                    } else {
-                        if(game.y < brick.y)
-                            game.dy = -game.dy;
-                        else if(game.y > brick.y + brick.height)
-                            game.dy = -game.dy;
-                    }
-                    return true;//There is a collision
+                    game.dx = -game.dx;
+                } else if(game.x > brick.x + brick.width){
+                    if(game.y < brick.y)
+                        game.dy = -game.dy;
+                    else if(game.y > brick.y + brick.height)
+                        game.dy = -game.dy;
+
+                    game.dx = -game.dx;
+                } else {
+                    if(game.y < brick.y)
+                        game.dy = -game.dy;
+                    else if(game.y > brick.y + brick.height)
+                        game.dy = -game.dy;
                 }
+                return true;//There is a collision
             }
+        }
 
         return false;//There is no collision
     }

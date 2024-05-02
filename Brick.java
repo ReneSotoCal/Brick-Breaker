@@ -1,3 +1,4 @@
+
 package com.example.brickbreaker;
 
 public class Brick {

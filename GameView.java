@@ -27,10 +27,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         getHolder().addCallback(this);
     }
 
+
+
+
+
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        gameThread = new GameThread(holder, getWidth(), getHeight());
+//        Handler.post(gameThread.start);
+        gameThread = new GameThread(holder, getWidth(), getHeight(), this);
         gameThread.start();
+
     }
 
     @Override
@@ -60,4 +66,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
         return true;
     }
+
+
+
+
+
 }
