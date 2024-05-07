@@ -1,7 +1,10 @@
 package com.example.brickbreaker;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -9,8 +12,9 @@ import androidx.annotation.NonNull;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
+    static boolean inMotion = false;
     GameThread gameThread;
-
+    Handler handler = new Handler(Looper.getMainLooper());
 
     public GameView(Context context) {
         super(context);
@@ -29,7 +33,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
-        gameThread = new GameThread(holder, getWidth(), getHeight());
+        gameThread = new GameThread(holder, getWidth(), getHeight(), this);
         gameThread.start();
     }
 
@@ -47,8 +51,33 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             try{
                 gameThread.join();
                 retry = false;
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        if(!inMotion)//On touch Event for the initial direction of the ball.
+            if(event.getAction() == MotionEvent.ACTION_DOWN){
+
+                gameThread.dy = 6;
+                inMotion = true;
+
+                if((int) event.getX() <= gameThread.sliderX + gameThread.width/10)
+                    gameThread.dx = -5;
+                else
+                    gameThread.dx = 5;
+            }
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {//On touch Event for the Slider
+
+            if((int) event.getX() >= gameThread.width - (gameThread.width/5))
+                gameThread.sliderX = gameThread.width - (gameThread.width/5);
+            else
+                gameThread.sliderX = Math.max((int) event.getX(), 0);
+        }
+        return true;
     }
 }

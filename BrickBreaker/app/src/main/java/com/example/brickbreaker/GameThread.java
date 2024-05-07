@@ -4,7 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.SurfaceHolder;
-
+import android.widget.Toast;
 import java.util.ArrayList;
 
 public class GameThread extends Thread{
@@ -12,17 +12,17 @@ public class GameThread extends Thread{
     ArrayList<ArrayList<Brick>> bricks;
     boolean running = true;
     final SurfaceHolder holder;
-    int width, height, radius;
-    int x;
-    int y;
-    int dx = 12;
-    int dy = 12;
-
-    public GameThread(SurfaceHolder holder, int width, int height){
+    int width, height, radius, sliderX, x, y;
+    int dx = 0;
+    int dy = 0;
+    GameView gameView;
+    boolean gameWon = true;
+    public GameThread(SurfaceHolder holder, int width, int height, GameView gameView){
         this.holder = holder;
         this.height = height;
         this.width = width;
-
+        this.sliderX = (width / 2) - (width / 10);
+        this.gameView = gameView;
     }
 
     @Override
@@ -42,8 +42,9 @@ public class GameThread extends Thread{
 
         //Initializing the radius and x and y coordinates
         radius = 35;
-        x = (int)(Math.random() * ((width - radius) - radius) + radius);//To be changed to the center of the slider
-        y = (int)(Math.random() * ((height - radius) - radius) + radius);//To be changed to the top of the slider
+
+        x = sliderX + width/10;
+        y = height - 100 - radius;
 
         //Changing directions of the ball when a border is reached
         while(running) {
@@ -54,24 +55,49 @@ public class GameThread extends Thread{
 
                     long currentTime = System.currentTimeMillis();//Current time of the balls position
                     canvas.drawRect(0, 0, width, height, white);//Draw the canvas
+
                     double elapsedTime = currentTime - previousTime;//Time elapsed between previous time and current
-                    Brick slider = new Brick(true, 75, width/5, 50, height - 100);
+                    Brick slider = new Brick(true, 75, width/5, sliderX, height - 100);
+
                     drawBrick(slider, canvas);
+                    collides(slider, this);
 
                     //Iterate through the bricks
                     for(ArrayList<Brick> row : bricks)
                         for(Brick brick : row){
-                            if(brick.isActive)
+
+                            if(brick.isActive) {
                                 drawBrick(brick, canvas);//Draw the bricks
+                                gameWon = false;
+                            }
+
                             if(collides(brick, this))//Calls collision method for bricks
                                 brick.isActive = false;//Delete the brick if a collision occurs
                         }
 
+                    if(gameWon){//Win the game if all the bricks are inactive
+                        gameView.handler.post(() -> {
+                            Toast.makeText(gameView.getContext(), "YOU WIN!", Toast.LENGTH_LONG).show();
+                            interrupt();
+                        });
+                        running = false;
+                    }
+
                     //Collisions for the borders of the screen
                     if (x - radius <= 0 || x + radius >= width)
                         dx = -dx;
-                    if (y - radius <= 0 || y + radius >= height)
+                    if (y - radius <= 0)
                         dy = -dy;
+
+                    if(y + radius >= height){//Lost the game if the ball touches the bottom of the screen
+                        gameView.handler.post(() -> {
+                            if(y + radius >= height)
+                                Toast.makeText(gameView.getContext(), "YOU LOSE!", Toast.LENGTH_LONG).show();
+                        });
+                        running = false;
+                    }
+
+                    gameWon = true;
 
                     //Updating the new x and y locations based on the rate of change and direction
                     x += (int) (elapsedTime * dx * 0.1);
@@ -193,13 +219,13 @@ public class GameThread extends Thread{
         row3.add(new Brick(true, 75, game.width/5, row1.get(2).x + game.width/5 + 30, 210));
 
         //Row4
-        row4.add(new Brick(true, 75, game.width/5, 50, 10));
+        row4.add(new Brick(true, 75, game.width/5, 50, 315));
         row4.add(new Brick(true, 75, game.width/5, row1.get(0).x + game.width/5 + 30, 315));
         row4.add(new Brick(true, 75, game.width/5, row1.get(1).x + game.width/5 + 30, 315));
         row4.add(new Brick(true, 75, game.width/5, row1.get(2).x + game.width/5 + 30, 315));
 
         //Row5
-        row5.add(new Brick(true, 75, game.width/5, 50, 10));
+        row5.add(new Brick(true, 75, game.width/5, 50, 420));
         row5.add(new Brick(true, 75, game.width/5, row1.get(0).x + game.width/5 + 30, 420));
         row5.add(new Brick(true, 75, game.width/5, row1.get(1).x + game.width/5 + 30, 420));
         row5.add(new Brick(true, 75, game.width/5, row1.get(2).x + game.width/5 + 30, 420));
